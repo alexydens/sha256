@@ -1,0 +1,4 @@
+-std=ansi
+-pedantic
+-Wall
+-Wextra
