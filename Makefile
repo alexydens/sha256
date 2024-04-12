@@ -4,7 +4,7 @@ SRC_DIR=src
 
 # Flags for compiler and linker
 CFLAGS = -ansi -Wall -Wextra -Werror
-LDFLAGS = -O3 -ffast-math
+LDFLAGS = -O2 -ffast-math
 
 # File targets
 # Main test binary

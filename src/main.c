@@ -30,7 +30,9 @@ u64 big_endian64(u64 val);
 /* Convert a 32-bit number from little-endian to big-endian */
 u32 big_endian32(u32 val);
 /* Prints a byte in binary form to stdout */
-void puts_binary(u8 val);
+void puts_binary8(u8 val);
+/* Prints a u32 in binary form to stdout */
+void puts_binary32(u32 val);
 /* Left rotation binary u32 */
 u32 rot_left(u32 val, u8 amount);
 /* Right rotation binary u32 */
@@ -53,7 +55,7 @@ int main(void) {
   hash_t hashed = sha256(buff);
   printf("Computed hash: ");
   for (i = 0; i < 8; i++)
-    printf("%08x ", big_endian32(hashed.value[i]));
+    printf("%08x", big_endian32(hashed.value[i]));
   printf("\n");
   return 0;
 }
@@ -87,7 +89,7 @@ u32 big_endian32(u32 val) {
   return res;
 }
 /* Prints a byte in binary form to stdout */
-void puts_binary(u8 val) {
+void puts_binary8(u8 val) {
   printf(
       "%c%c%c%c%c%c%c%c",
       ((val >> 7) & 1) ? '1' : '0',
@@ -99,6 +101,14 @@ void puts_binary(u8 val) {
       ((val >> 1) & 1) ? '1' : '0',
       (val & 1) ? '1' : '0'
   );
+}
+/* Prints a u32 in binary form to stdout */
+void puts_binary32(u32 val) {
+  u8* p_val = (u8*)&val;
+  puts_binary8(p_val[0]);
+  puts_binary8(p_val[1]);
+  puts_binary8(p_val[2]);
+  puts_binary8(p_val[3]);
 }
 /* Left rotation binary u32 */
 u32 rot_left(u32 val, u8 amount) {
@@ -190,20 +200,12 @@ hash_t sha256(const char* cleartext) {
   msglen = strlen(cleartext);
   buff_size = (((msglen+5)/64)+1)*64;
   num_blocks = buff_size/64;
-  printf("msglen: %llu\n", msglen);
-  printf("buff_size: %llu\n", buff_size);
-  printf("num_blocks: %llu\n", num_blocks);
   /* Initialize buffer */
   buff = malloc(buff_size);
   memset(buff, 0x00, buff_size);
   memcpy(buff, cleartext, msglen);
   buff[msglen] = 128u;
   ((u64*)buff)[(buff_size/8)-1] = big_endian64(msglen*8);
-  printf("buff:\n");
-  for (i = 0; i < 64; i++) {
-    puts_binary(buff[i]);
-    printf(" %s", i % 4 == 3 ? "\n" : "");
-  }
   /* Set initial hash values */
   hash.value[0] = big_endian32(0x6a09e667);
   hash.value[1] = big_endian32(0xbb67ae85);
@@ -213,12 +215,6 @@ hash_t sha256(const char* cleartext) {
   hash.value[5] = big_endian32(0x9b05688c);
   hash.value[6] = big_endian32(0x1f83d9ab);
   hash.value[7] = big_endian32(0x5be0cd19);
-  printf("h0: ");
-  puts_binary(((u8*)hash.value)[0]);
-  puts_binary(((u8*)hash.value)[1]);
-  puts_binary(((u8*)hash.value)[2]);
-  puts_binary(((u8*)hash.value)[3]);
-  printf("\n");
   /* Const */
   u32 k[64] = {
     0x428a2f98,0x71374491,0xb5c0fbcf,0xe9b5dba5,
@@ -258,14 +254,6 @@ hash_t sha256(const char* cleartext) {
           add_u32(SIG1(w[t - 2]), w[t - 7]),
           add_u32(SIG0(w[t - 15]), w[t - 16])
         );
-    for (t = 0; t < 64; t++) {
-      printf("w%02llu: ", t);
-      puts_binary(((u8*)w)[t*4]);
-      puts_binary(((u8*)w)[t*4+1]);
-      puts_binary(((u8*)w)[t*4+2]);
-      puts_binary(((u8*)w)[t*4+3]);
-      printf("\n");
-    }
     /* Perform calculations */
     for (t = 0; t < 64; t++) {
       u32 t1 = 
@@ -287,14 +275,14 @@ hash_t sha256(const char* cleartext) {
       a = add_u32(t1, t2);
     }
     /* Finish round */
-    hash.value[0] = a;
-    hash.value[1] = b;
-    hash.value[2] = c;
-    hash.value[3] = d;
-    hash.value[4] = e;
-    hash.value[5] = f;
-    hash.value[6] = g;
-    hash.value[7] = h;
+    hash.value[0] = add_u32(a, hash.value[0]);
+    hash.value[1] = add_u32(b, hash.value[1]);
+    hash.value[2] = add_u32(c, hash.value[2]);
+    hash.value[3] = add_u32(d, hash.value[3]);
+    hash.value[4] = add_u32(e, hash.value[4]);
+    hash.value[5] = add_u32(f, hash.value[5]);
+    hash.value[6] = add_u32(g, hash.value[6]);
+    hash.value[7] = add_u32(h, hash.value[7]);
   }
 
   return hash;
