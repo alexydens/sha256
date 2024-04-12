@@ -53,6 +53,7 @@ int main(void) {
   read(STDIN_FILENO, buff, BUFF_SIZE);
   buff[strlen(buff)-1] = '\0';
   hash_t hashed = sha256(buff);
+  printf("Computed hash: ");
   for (i = 0; i < 8; i++)
     printf("%08x", big_endian32(hashed.value[i]));
   printf("\n");
