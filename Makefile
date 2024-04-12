@@ -9,11 +9,11 @@ LDFLAGS = -O2 -ffast-math
 # File targets
 # Main test binary
 $(BUILD_DIR)/main: $(SRC_DIR)/main.c
-	$(CC) $(CFLAGS) $(SRC_DIR)/* -o $@ $(LDFLAGS)
+	$(CC) $(CFLAGS) $(SRC_DIR)/*.c -o $@ $(LDFLAGS)
 
 # Debug test binary
 $(BUILD_DIR)/main_debug: $(SRC_DIR)/main.c
-	$(CC) $(CFLAGS) $(SRC_DIR)/* -o $@ $(LDFLAGS) -ggdb
+	$(CC) $(CFLAGS) $(SRC_DIR)/*.c -o $@ $(LDFLAGS) -ggdb
 
 # Phony rules
 .PHONY: clean test debug
